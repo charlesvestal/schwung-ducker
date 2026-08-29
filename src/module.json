@@ -241,6 +241,7 @@
             },
             {
               "key": "vel_sens",
+              "short_name": "sens",
               "label": "Vel Sens",
               "type": "float",
               "min": 0,
