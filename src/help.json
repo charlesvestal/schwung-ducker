@@ -63,8 +63,14 @@
             "   ducking amount",
             "",
             "Higher velocity =",
-            "less ducking when",
-            "sensitivity is high."
+            "DEEPER ducking when",
+            "sensitivity is high.",
+            "",
+            "At sensitivity 1 a",
+            "velocity of 127 gets",
+            "the full Depth and a",
+            "velocity near 0 gets",
+            "almost none."
           ]
         }
       ]
