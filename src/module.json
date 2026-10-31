@@ -3,7 +3,7 @@
   "name": "Ducker",
   "abbrev": "DK",
   "version": "0.1.5",
-  "description": "MIDI-triggered sidechain ducker - classic pumping without an audio sidechain",
+  "description": "MIDI-triggered sidechain ducker - classic pumping without an audio sidechain, on volume or as a filter sweep",
   "author": "charlesvestal",
   "license": "MIT",
   "dsp": "ducker.so",
@@ -205,7 +205,18 @@
               "max": 1,
               "default": 0.1,
               "step": 0.01,
-              "unit": "%"
+              "unit": "%",
+              "viz": {
+                "group": "duck",
+                "role": "attack",
+                "kind": "custom:duckenv",
+                "extra_keys": [
+                  "duck_info",
+                  "curve",
+                  "tempo",
+                  "duck_level"
+                ]
+              }
             },
             {
               "key": "hold",
@@ -215,7 +226,11 @@
               "max": 1,
               "default": 0.2,
               "step": 0.01,
-              "unit": "%"
+              "unit": "%",
+              "viz": {
+                "group": "duck",
+                "role": "hold"
+              }
             },
             {
               "key": "release",
@@ -225,8 +240,55 @@
               "max": 1,
               "default": 0.3,
               "step": 0.01,
-              "unit": "%"
+              "unit": "%",
+              "viz": {
+                "group": "duck",
+                "role": "release"
+              }
             },
+            {
+              "key": "target",
+              "label": "Target",
+              "type": "enum",
+              "options": [
+                "Volume",
+                "Volume Inv",
+                "Filter"
+              ],
+              "default": "Volume"
+            },
+            {
+              "level": "volume_page",
+              "label": "Volume"
+            },
+            {
+              "level": "filter_page",
+              "label": "Filter"
+            }
+          ],
+          "knobs": [
+            "channel",
+            "trigger_note",
+            "mode",
+            "depth",
+            "attack",
+            "hold",
+            "release",
+            "target"
+          ]
+        },
+        "volume_page": {
+          "label": "Volume",
+          "visible_if": {
+            "param": "target",
+            "not_equals": "Filter"
+          },
+          "knobs": [
+            "curve",
+            "vel_sens",
+            "retrig"
+          ],
+          "params": [
             {
               "key": "curve",
               "label": "Curve",
@@ -249,20 +311,117 @@
               "default": 0,
               "step": 0.01,
               "unit": "%"
+            },
+            {
+              "key": "retrig",
+              "short_name": "retrig",
+              "label": "Retrig",
+              "type": "enum",
+              "options": [
+                "Hard",
+                "Soft"
+              ],
+              "default": "Soft"
             }
-          ],
+          ]
+        },
+        "filter_page": {
+          "label": "Filter",
+          "visible_if": {
+            "param": "target",
+            "equals": "Filter"
+          },
           "knobs": [
-            "channel",
-            "trigger_note",
-            "mode",
-            "depth",
-            "attack",
-            "hold",
-            "release",
-            "curve"
+            "curve",
+            "vel_sens",
+            "retrig",
+            null,
+            "cut1",
+            "cut2",
+            "resonance",
+            "filter_type"
+          ],
+          "params": [
+            {
+              "key": "curve",
+              "label": "Curve",
+              "type": "enum",
+              "options": [
+                "Linear",
+                "Expo",
+                "S-Curve",
+                "Pump"
+              ],
+              "default": "Linear"
+            },
+            {
+              "key": "vel_sens",
+              "short_name": "sens",
+              "label": "Vel Sens",
+              "type": "float",
+              "min": 0,
+              "max": 1,
+              "default": 0,
+              "step": 0.01,
+              "unit": "%"
+            },
+            {
+              "key": "retrig",
+              "short_name": "retrig",
+              "label": "Retrig",
+              "type": "enum",
+              "options": [
+                "Hard",
+                "Soft"
+              ],
+              "default": "Soft"
+            },
+            {
+              "key": "cut1",
+              "label": "Cut1",
+              "type": "int",
+              "min": 0,
+              "max": 127,
+              "default": 114,
+              "step": 1,
+              "card_script": "cards.js#freq_card"
+            },
+            {
+              "key": "cut2",
+              "label": "Cut2",
+              "type": "int",
+              "min": 0,
+              "max": 127,
+              "default": 13,
+              "step": 1,
+              "card_script": "cards.js#freq_card"
+            },
+            {
+              "key": "resonance",
+              "label": "Res",
+              "type": "float",
+              "min": 0,
+              "max": 0.9,
+              "default": 0.2,
+              "step": 0.01,
+              "unit": "%"
+            },
+            {
+              "key": "filter_type",
+              "label": "Type",
+              "type": "enum",
+              "options": [
+                "LP12",
+                "LP24",
+                "HP12",
+                "HP24"
+              ],
+              "default": "LP24"
+            }
           ]
         }
       }
-    }
+    },
+    "canvas_script": "canvas.js"
   }
 }

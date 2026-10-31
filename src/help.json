@@ -13,7 +13,32 @@
         "",
         "Responds to a",
         "specific MIDI note",
-        "to duck the signal."
+        "to duck the signal.",
+        "",
+        "Target picks what",
+        "ducks: Volume, or a",
+        "Filter sweeping",
+        "between two cutoffs.",
+        "Volume Inv rests at",
+        "1 - Depth; a trigger",
+        "opens it up, to full",
+        "at velocity 127.",
+        "It rests only while",
+        "the transport plays;",
+        "stopped, it passes.",
+        "",
+        "The envelope graphic",
+        "shows the duck over",
+        "one beat (1/4 note)",
+        "at the current BPM;",
+        "notches = 16ths.",
+        "Its meter shows the",
+        "volume: full bar = no",
+        "ducking, lowest = the",
+        "hold level. Volume",
+        "Inv is the other way",
+        "up: low at rest, full",
+        "on each trigger."
       ]
     },
     {
@@ -49,9 +74,54 @@
             "Knob 7: Release",
             " Recovery (0-1000ms)",
             "",
-            "Knob 8: Curve",
+            "Knob 8: Target",
+            " Volume, Volume Inv",
+            " or Filter"
+          ]
+        },
+        {
+          "title": "Page 2: Volume",
+          "lines": [
+            "Knob 1: Curve",
             " Linear, Expo,",
-            " S-Curve, or Pump"
+            " S-Curve, or Pump",
+            "",
+            "Knob 2: Vel Sens",
+            " see Velocity",
+            "",
+            "Knob 3: Retrig",
+            " Hard or Soft, see",
+            " Retrigger"
+          ]
+        },
+        {
+          "title": "Page 2: Filter",
+          "lines": [
+            "Knob 1: Curve",
+            "Knob 2: Vel Sens",
+            "Knob 3: Retrig",
+            "",
+            "Knob 5: Cut1",
+            " Cutoff while idle",
+            "",
+            "Knob 6: Cut2",
+            " Cutoff at full duck",
+            " (Depth 100%; less",
+            " Depth stops short)",
+            "",
+            "Knob 7: Res",
+            " Resonance",
+            "",
+            "Knob 8: Type",
+            " LP/HP, 12 or 24 dB",
+            "",
+            "HP: set Cut1 low and",
+            "Cut2 high.",
+            "",
+            "Cutoffs: 128 log",
+            "steps, 20Hz to 20k.",
+            "Hold a cutoff knob",
+            "to see the Hz."
           ]
         },
         {
@@ -71,6 +141,29 @@
             "the full Depth and a",
             "velocity near 0 gets",
             "almost none."
+          ]
+        },
+        {
+          "title": "Retrigger",
+          "lines": [
+            "A new note while the",
+            "duck is still running:",
+            "",
+            "Hard: restart from",
+            " fully open (the old",
+            " behaviour).",
+            "",
+            "Soft: carry on from",
+            " the current level.",
+            " The sweep keeps its",
+            " slope, so the duck",
+            " always ends at the",
+            " same time after the",
+            " kick. A hit asking",
+            " for less depth than",
+            " is already ducked",
+            " keeps the deeper",
+            " level."
           ]
         }
       ]
