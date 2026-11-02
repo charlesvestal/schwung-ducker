@@ -16,15 +16,15 @@ echo "=== Installing Ducker Module ==="
 
 # Deploy to Move - audio_fx subdirectory
 echo "Copying module to Move..."
-ssh ableton@move.local "mkdir -p /data/UserData/move-anything/modules/audio_fx/ducker"
-scp -r dist/ducker/* ableton@move.local:/data/UserData/move-anything/modules/audio_fx/ducker/
+ssh ableton@move.local "mkdir -p /data/UserData/schwung/modules/audio_fx/ducker"
+scp -r dist/ducker/* ableton@move.local:/data/UserData/schwung/modules/audio_fx/ducker/
 
 # Set permissions so Module Store can update later
 echo "Setting permissions..."
-ssh ableton@move.local "chmod -R a+rw /data/UserData/move-anything/modules/audio_fx/ducker"
+ssh ableton@move.local "chmod -R a+rw /data/UserData/schwung/modules/audio_fx/ducker"
 
 echo ""
 echo "=== Install Complete ==="
-echo "Module installed to: /data/UserData/move-anything/modules/audio_fx/ducker/"
+echo "Module installed to: /data/UserData/schwung/modules/audio_fx/ducker/"
 echo ""
-echo "Restart Move Anything to load the new module."
+echo "Restart Schwung to load the new module."
