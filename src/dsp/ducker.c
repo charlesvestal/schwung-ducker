@@ -38,12 +38,17 @@ enum {
     MODE_GATE
 };
 
+/* Trigger = All: any note-on on the selected channel fires the envelope.
+ * 128 is the option's INDEX in the Trigger enum (after the 128 note names),
+ * so index == note number stays true for every real note. */
+#define TRIGGER_ALL 128
+
 typedef struct ducker_instance {
     char module_dir[512];
 
     /* Parameters */
     int channel;          /* 0=omni, 1-16 */
-    int trigger_note;     /* 0-127 */
+    int trigger_note;     /* 0-127, or TRIGGER_ALL */
     int mode;             /* MODE_TRIGGER or MODE_GATE */
     float depth;          /* 0.0-1.0 */
     float attack;         /* 0.0-1.0 → 0-50ms */
@@ -315,8 +320,8 @@ static void ducker_on_midi(void *instance, const uint8_t *msg, int len, int sour
     /* Channel filter: 0=omni accepts all */
     if (inst->channel > 0 && ch != inst->channel) return;
 
-    /* Note filter */
-    if (note != inst->trigger_note) return;
+    /* Note filter: TRIGGER_ALL accepts any note on the selected channel */
+    if (inst->trigger_note != TRIGGER_ALL && note != inst->trigger_note) return;
 
     if (status == 0x90 && vel > 0) {
         /* Note on */
@@ -355,6 +360,29 @@ static int parse_channel(const char *val) {
     return (int)(f * 16.0f + 0.5f);
 }
 
+/* Trigger note from any form a host, a saved set or an older build may send:
+ * "All", an index/note number (128 = All; -1 is how the 0.1.3 "All" build
+ * stored it), or a note name in Live's octave numbering ("C1" = 36). */
+static int note_from_number(int n) {
+    if (n < 0 || n >= TRIGGER_ALL) return TRIGGER_ALL;
+    return n;
+}
+
+static int parse_trigger_note(const char *val) {
+    if (strcmp(val, "All") == 0 || val[0] == '[') return TRIGGER_ALL;
+    static const int semis[7] = { 9, 11, 0, 2, 4, 5, 7 };  /* A B C D E F G */
+    if (val[0] >= 'A' && val[0] <= 'G') {
+        int n = semis[val[0] - 'A'];
+        const char *q = val + 1;
+        if (*q == '#') { n++; q++; }
+        n += (atoi(q) + 2) * 12;
+        if (n < 0) n = 0;
+        if (n > 127) n = 127;
+        return n;
+    }
+    return note_from_number((int)strtol(val, NULL, 10));
+}
+
 static int parse_curve(const char *val) {
     if (strcmp(val, "Linear") == 0) return CURVE_LINEAR;
     if (strcmp(val, "Expo") == 0) return CURVE_EXPO;
@@ -380,10 +408,7 @@ static void v2_set_param(void *instance, const char *key, const char *val) {
     if (strcmp(key, "channel") == 0) {
         inst->channel = parse_channel(val);
     } else if (strcmp(key, "trigger_note") == 0) {
-        int n = atoi(val);
-        if (n < 0) n = 0;
-        if (n > 127) n = 127;
-        inst->trigger_note = n;
+        inst->trigger_note = parse_trigger_note(val);
     } else if (strcmp(key, "mode") == 0) {
         inst->mode = parse_mode(val);
     } else if (strcmp(key, "depth") == 0) {
@@ -408,8 +433,10 @@ static void v2_set_param(void *instance, const char *key, const char *val) {
         } else if (json_get_number(val, "channel", &fval) == 0) {
             inst->channel = (int)clampf(fval, 0.0f, 16.0f);
         }
-        if (json_get_number(val, "trigger_note", &fval) == 0) {
-            inst->trigger_note = (int)clampf(fval, 0.0f, 127.0f);
+        if (json_get_string(val, "trigger_note", sval, sizeof(sval)) == 0) {
+            inst->trigger_note = parse_trigger_note(sval);
+        } else if (json_get_number(val, "trigger_note", &fval) == 0) {
+            inst->trigger_note = note_from_number((int)fval);
         }
         if (json_get_string(val, "mode", sval, sizeof(sval)) == 0) {
             inst->mode = parse_mode(sval);
@@ -511,8 +538,9 @@ static int v2_get_param(void *instance, const char *key, char *buf, int buf_len)
              * draws the name itself -- C1 -- and the knob steps a semitone at a time.
              * Live`s octave numbering: 36 is C1 and 60 is C3, matching the pads.
              * The wire value is still the note number: get_param returns "%d" and the
-             * host resolves a numeric enum value as an index. */
-            "{\"key\":\"trigger_note\",\"name\":\"Trigger\",\"type\":\"enum\",\"options\":[\"C-2\",\"C#-2\",\"D-2\",\"D#-2\",\"E-2\",\"F-2\",\"F#-2\",\"G-2\",\"G#-2\",\"A-2\",\"A#-2\",\"B-2\",\"C-1\",\"C#-1\",\"D-1\",\"D#-1\",\"E-1\",\"F-1\",\"F#-1\",\"G-1\",\"G#-1\",\"A-1\",\"A#-1\",\"B-1\",\"C0\",\"C#0\",\"D0\",\"D#0\",\"E0\",\"F0\",\"F#0\",\"G0\",\"G#0\",\"A0\",\"A#0\",\"B0\",\"C1\",\"C#1\",\"D1\",\"D#1\",\"E1\",\"F1\",\"F#1\",\"G1\",\"G#1\",\"A1\",\"A#1\",\"B1\",\"C2\",\"C#2\",\"D2\",\"D#2\",\"E2\",\"F2\",\"F#2\",\"G2\",\"G#2\",\"A2\",\"A#2\",\"B2\",\"C3\",\"C#3\",\"D3\",\"D#3\",\"E3\",\"F3\",\"F#3\",\"G3\",\"G#3\",\"A3\",\"A#3\",\"B3\",\"C4\",\"C#4\",\"D4\",\"D#4\",\"E4\",\"F4\",\"F#4\",\"G4\",\"G#4\",\"A4\",\"A#4\",\"B4\",\"C5\",\"C#5\",\"D5\",\"D#5\",\"E5\",\"F5\",\"F#5\",\"G5\",\"G#5\",\"A5\",\"A#5\",\"B5\",\"C6\",\"C#6\",\"D6\",\"D#6\",\"E6\",\"F6\",\"F#6\",\"G6\",\"G#6\",\"A6\",\"A#6\",\"B6\",\"C7\",\"C#7\",\"D7\",\"D#7\",\"E7\",\"F7\",\"F#7\",\"G7\",\"G#7\",\"A7\",\"A#7\",\"B7\",\"C8\",\"C#8\",\"D8\",\"D#8\",\"E8\",\"F8\",\"F#8\",\"G8\"],\"default\":\"C1\"},"
+             * host resolves a numeric enum value as an index. "All" is appended LAST,
+             * as index 128 (TRIGGER_ALL), so that stays true for every real note. */
+            "{\"key\":\"trigger_note\",\"name\":\"Trigger\",\"type\":\"enum\",\"options\":[\"C-2\",\"C#-2\",\"D-2\",\"D#-2\",\"E-2\",\"F-2\",\"F#-2\",\"G-2\",\"G#-2\",\"A-2\",\"A#-2\",\"B-2\",\"C-1\",\"C#-1\",\"D-1\",\"D#-1\",\"E-1\",\"F-1\",\"F#-1\",\"G-1\",\"G#-1\",\"A-1\",\"A#-1\",\"B-1\",\"C0\",\"C#0\",\"D0\",\"D#0\",\"E0\",\"F0\",\"F#0\",\"G0\",\"G#0\",\"A0\",\"A#0\",\"B0\",\"C1\",\"C#1\",\"D1\",\"D#1\",\"E1\",\"F1\",\"F#1\",\"G1\",\"G#1\",\"A1\",\"A#1\",\"B1\",\"C2\",\"C#2\",\"D2\",\"D#2\",\"E2\",\"F2\",\"F#2\",\"G2\",\"G#2\",\"A2\",\"A#2\",\"B2\",\"C3\",\"C#3\",\"D3\",\"D#3\",\"E3\",\"F3\",\"F#3\",\"G3\",\"G#3\",\"A3\",\"A#3\",\"B3\",\"C4\",\"C#4\",\"D4\",\"D#4\",\"E4\",\"F4\",\"F#4\",\"G4\",\"G#4\",\"A4\",\"A#4\",\"B4\",\"C5\",\"C#5\",\"D5\",\"D#5\",\"E5\",\"F5\",\"F#5\",\"G5\",\"G#5\",\"A5\",\"A#5\",\"B5\",\"C6\",\"C#6\",\"D6\",\"D#6\",\"E6\",\"F6\",\"F#6\",\"G6\",\"G#6\",\"A6\",\"A#6\",\"B6\",\"C7\",\"C#7\",\"D7\",\"D#7\",\"E7\",\"F7\",\"F#7\",\"G7\",\"G#7\",\"A7\",\"A#7\",\"B7\",\"C8\",\"C#8\",\"D8\",\"D#8\",\"E8\",\"F8\",\"F#8\",\"G8\",\"All\"],\"default\":\"C1\"},"
             "{\"key\":\"mode\",\"name\":\"Mode\",\"type\":\"enum\",\"options\":[\"Trigger\",\"Gate\"],\"default\":\"Trigger\"},"
             "{\"key\":\"depth\",\"name\":\"Depth\",\"type\":\"float\",\"min\":0,\"max\":1,\"default\":1,\"step\":0.01},"
             "{\"key\":\"attack\",\"name\":\"Attack\",\"type\":\"float\",\"min\":0,\"max\":1,\"default\":0.1,\"step\":0.01},"
