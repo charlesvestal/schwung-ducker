@@ -49,7 +49,9 @@ mkdir -p dist/ducker
 
 # Compile DSP plugin (with aggressive optimizations for CM4)
 echo "Compiling DSP plugin..."
-${CROSS_PREFIX}gcc -Ofast -shared -fPIC \
+# -fno-finite-math-only: -Ofast lets gcc assume no NaN, which compiles away
+# clampf's NaN guard (a "nan" set_param came back as the knob's MAX).
+${CROSS_PREFIX}gcc -Ofast -fno-finite-math-only -shared -fPIC \
     -march=armv8-a -mtune=cortex-a72 \
     -fomit-frame-pointer -fno-stack-protector \
     -DNDEBUG \
