@@ -2,7 +2,7 @@
   "id": "ducker",
   "name": "Ducker",
   "abbrev": "DK",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "MIDI-triggered sidechain ducker - classic pumping without an audio sidechain, on volume or as a filter sweep",
   "author": "charlesvestal",
   "license": "MIT",
