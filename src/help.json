@@ -27,6 +27,7 @@
             "",
             "Knob 2: Trigger Note",
             " MIDI note (def C1)",
+            " or All = any note",
             "",
             "Knob 3: Mode",
             " Trigger: one-shot",
@@ -78,8 +79,9 @@
     {
       "title": "MIDI",
       "lines": [
-        "Responds to one",
-        "specific MIDI note.",
+        "Responds to a chosen",
+        "MIDI note, or any note",
+        "when set to All.",
         "",
         "Default: C1 (note 36)",
         "",
