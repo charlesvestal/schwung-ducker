@@ -62,6 +62,8 @@ ${CROSS_PREFIX}gcc -Ofast -shared -fPIC \
 echo "Packaging..."
 cat src/module.json > dist/ducker/module.json
 [ -f src/help.json ] && cat src/help.json > dist/ducker/help.json
+cat src/canvas.js > dist/ducker/canvas.js
+cat src/cards.js > dist/ducker/cards.js
 cat build/ducker.so > dist/ducker/ducker.so
 chmod +x dist/ducker/ducker.so
 
